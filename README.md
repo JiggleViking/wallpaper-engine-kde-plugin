@@ -2,7 +2,6 @@
 A wallpaper plugin integrating [wallpaper engine](https://store.steampowered.com/app/431960/Wallpaper_Engine) into kde wallpaper setting.  
 
 ## Todo
-- support kde6
 - move scene to separate process
 
 ## Note
@@ -42,13 +41,13 @@ Fedora:
 ```sh
 # Please add "RPM Fusion" repo first
 sudo dnf install vulkan-headers plasma-workspace-devel kf5-plasma-devel gstreamer1-libav \
-lz4-devel mpv-libs-devel python3-websockets qt5-qtbase-private-devel \
+lz4-devel mpv-libs-devel python3-websockets qt5-qtbase-private-devel libplasma-devel \
 qt5-qtx11extras-devel qt5-qtwebchannel-devel qt5-qtwebsockets-devel cmake
 ```
 
 Arch:  
 ```sh
-sudo pacman -S extra-cmake-modules plasma-framework gst-libav \
+sudo pacman -S extra-cmake-modules plasma-framework5 gst-libav \
 base-devel mpv python-websockets qt5-declarative qt5-websockets qt5-webchannel vulkan-headers cmake
 ```
 
@@ -78,7 +77,7 @@ Every time you receive update in discover, you should run these commands to upda
 #### Build and Install
 ```sh
 # Download source
-git clone --branch=qt6 https://github.com/catsout/wallpaper-engine-kde-plugin.git
+git clone https://github.com/catsout/wallpaper-engine-kde-plugin.git
 cd wallpaper-engine-kde-plugin
 
 # Download submodule

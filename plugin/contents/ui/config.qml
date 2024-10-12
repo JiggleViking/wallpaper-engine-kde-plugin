@@ -8,8 +8,6 @@ import "page"
 
 ColumnLayout {
     id: root
-    anchors.fill: parent
-    anchors.topMargin: 5
     spacing: 5
     
     property string cfg_SteamLibraryPath
@@ -27,6 +25,7 @@ ColumnLayout {
     property alias  cfg_ResumeTime:          settingPage.cfg_ResumeTime
     property alias  cfg_SwitchTimer:         settingPage.cfg_SwitchTimer
     property alias  cfg_RandomizeWallpaper:  settingPage.cfg_RandomizeWallpaper
+    property alias  cfg_NoRandomWhilePaused: settingPage.cfg_NoRandomWhilePaused
     property alias  cfg_PauseFilterByScreen: settingPage.cfg_PauseFilterByScreen
     property alias  cfg_PauseOnBatPower:     settingPage.cfg_PauseOnBatPower
     property alias  cfg_PauseBatPercent:     settingPage.cfg_PauseBatPercent
@@ -105,6 +104,7 @@ ColumnLayout {
     WallpaperListModel {
         id: wpListModel
         workshopDirs: Common.getProjectDirs(cfg_SteamLibraryPath)
+        globalConfigPath: Common.getGlobalConfigPath(cfg_SteamLibraryPath)
         filterStr: cfg_FilterStr
         sortMode: cfg_SortMode
         initItemOp: (item) => {

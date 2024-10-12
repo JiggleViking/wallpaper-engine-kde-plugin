@@ -172,6 +172,29 @@ RowLayout {
                     wpListModel.modelStartSync.connect(this.item.backtoBegin);
                     wpListModel.modelRefreshed.connect(refreshIndex.bind(this));
                 }
+
+                Kirigami.Heading {
+                    anchors.fill: parent
+                    anchors.margins: Kirigami.Units.largeSpacing
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    wrapMode: Text.WordWrap
+                    visible: picViewLoader.item && picViewLoader.item.view.count === 0
+                    level: 2
+                    text: { 
+                        if(!(libcheck.qtwebsockets && pyext))
+                            return `Please make sure qtwebsockets(qml module) installed, and open this again`
+                        if(!pyext.ok) {
+                            return `Python helper run failed: ${pyext.log}`;
+                        }
+                        if(!cfg_SteamLibraryPath)
+                            return "Select your steam library through the folder selecting button above";
+                        if(wpListModel.countNoFilter > 0)
+                            return `Found ${wpListModel.countNoFilter} wallpapers, but none of them matched filters`;
+                        return `There are no wallpapers in steam library`;
+                    }
+                    opacity: 0.5
+                }
             }
             Component { 
                 id: picViewCom
@@ -181,6 +204,7 @@ RowLayout {
 
                     readonly property var currentModel: view.model.get(view.currentIndex)
                     readonly property var defaultModel: ListModel {}
+                    visible: view.count > 0
 
                     // from org.kde.image
                     view.implicitCellWidth: Screen.width / 10 + Kirigami.Units.smallSpacing * 2
@@ -232,30 +256,7 @@ RowLayout {
                         }
                     }
 
-                    Kirigami.Heading {
-                        anchors.fill: parent
-                        anchors.margins: Kirigami.Units.largeSpacing
-                        // FIXME: this is needed to vertically center it in the grid for some reason
-                        anchors.topMargin: picViewGrid.height
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        wrapMode: Text.WordWrap
-                        visible: picViewGrid.view.count === 0
-                        level: 2
-                        text: { 
-                            if(!(libcheck.qtwebsockets && pyext))
-                                return `Please make sure qtwebsockets(qml module) installed, and open this again`
-                            if(!pyext.ok) {
-                                return `Python helper run failed: ${pyext.log}`;
-                            }
-                            if(!cfg_SteamLibraryPath)
-                                return "Select your steam library through the folder selecting button above";
-                            if(wpListModel.countNoFilter > 0)
-                                return `Found ${wpListModel.countNoFilter} wallpapers, but none of them matched filters`;
-                            return `There are no wallpapers in steam library`;
-                        }
-                        opacity: 0.5
-                    }
+     
                     function backtoBegin() {
                         view.model = defaultModel
                         //view.positionViewAtBeginning();
@@ -303,7 +304,7 @@ RowLayout {
                 onAccepted: {
                     const path = Utils.trimCharR(wpDialog.selectedFolder.toString(), '/');
                     cfg_SteamLibraryPath = path;
-                    wpListModel.refresh();
+                    return wpListModel.refresh();
                 }
             }
         }
@@ -475,10 +476,15 @@ RowLayout {
                     readonly property bool _set_model: {
                         const wpmodel = right_content.wpmodel;
                         const tags = right_content.wpmodel.tags;
+                        const playlists = right_content.wpmodel.playlists;
                         const _model = this.model;
                         _model.clear();
                         for(const i of Array(tags.length).keys())
                             _model.append(tags.get(i));
+                        for(const i of Array(playlists.length).keys()){
+                            var playlist = playlists.get(i);
+                            if(playlist != null) { _model.append(playlists.get(i)); }
+                        }
                         _model.append({key: wpmodel.contentrating});
                         return true;
                     }

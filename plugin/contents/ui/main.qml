@@ -1,4 +1,5 @@
 import QtQuick 2.12
+import com.github.catsout.wallpaperEngineKde 1.2
 import QtQuick.Window 2.2
 import org.kde.plasma.core 2.0 as PlasmaCore
 import org.kde.plasma.plasmoid
@@ -30,6 +31,7 @@ Rectangle {
     property int    fps: wallpaper.configuration.Fps
 
     property bool   randomizeWallpaper: wallpaper.configuration.RandomizeWallpaper
+    property bool   noRandomWhilePaused: wallpaper.configuration.NoRandomWhilePaused
     property bool   mouseInput: wallpaper.configuration.MouseInput
     property bool   mpvStats: wallpaper.configuration.MpvStats
 
@@ -60,6 +62,20 @@ Rectangle {
 
     // auto pause
     property bool   ok: !windowModel.reqPause && !powerSource.reqPause
+
+    // detect TTY switch and pause wallpaper(s)
+    TTYSwitchMonitor {
+        id: ttyMonitor
+        onTtySwitch: {
+            if (sleep) {
+                console.log("Preparing for sleep (possibly a VT switch)");
+                this.pause();
+            } else {
+                console.log("Waking up (VT switch back)");
+                this.play();
+            }
+        }
+    }
 
     property string nowBackend: ""
 
@@ -158,11 +174,6 @@ Rectangle {
                         anchors.fill: parent
                     }
             `, screenGrid);
-            /*
-            console.error(Common.genItemListStr(Window.contentItem, "  ", function(item) {
-                return `${item} {z: ${item.z}, w: ${item.width}, h: ${item.height}}`;
-            }));
-            */
             return true;
        }
        return false;
@@ -191,6 +202,7 @@ Rectangle {
         id: wpListModel
         enabled: background.randomizeWallpaper
         workshopDirs: Common.getProjectDirs(background.steamlibrary)
+        globalConfigPath: Common.getGlobalConfigPath(background.steamlibrary)
         filterStr: background.filterStr
         initItemOp: (item) => {
             if(!background.customConf) return;
@@ -211,10 +223,12 @@ Rectangle {
             lauchPauseTimer.start() 
             
             if(this.model.count === 0) return;
-            let result = this.model.get(Math.round(Math.random() * this.model.count));
+
+            let result = this.model.get(Math.round(Math.random() * wpListModel.model.count);
+
             while(typeof result === 'undefined' || result.workshopid == wallpaper.configuration.WallpaperWorkShopId)
             {
-                result = this.model.get(Math.round(Math.random() * this.model.count));
+                result = this.model.get(Math.round(Math.random() * wpListModel.model.count));
             }
 
             wallpaper.configuration.WallpaperWorkShopId = result.workshopid;
@@ -228,7 +242,11 @@ Rectangle {
         running: background.randomizeWallpaper
         interval: background.switchTimer * 1000 * 60
         repeat: true
-        onTriggered: wpListModel.randomizeWallpaper();
+        onTriggered: {
+            if(!(background.noRandomWhilePaused && !background.ok)) {
+                wpListModel.randomizeWallpaper();
+            }
+        }
     }
 
     // lauch pause time to avoid freezing
